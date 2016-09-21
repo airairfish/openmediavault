@@ -277,10 +277,7 @@ class OMVRpcServiceShareMgmt extends \OMV\Rpc\ServiceAbstract {
 			// - The share name must be global unique because the name
 			//   is also used when exporting a shared folder via NFS
 			//   for example.
-			if (FALSE === $db->isUnique($object, "name")) {
-				throw new \OMV\Exception("A shared folder with the name '%s' ".
-				  "already exists.", $object->get("name"));
-			}
+			$db->assertIsUnique($object, "name");
 			// - The mount directory must be unique on the same volume, too.
 			if (FALSE === $db->isUniqueByFilter($object, [
 				"operator" => "and",
@@ -295,14 +292,16 @@ class OMVRpcServiceShareMgmt extends \OMV\Rpc\ServiceAbstract {
 					"arg1" => $object->get("reldirpath")
 				]
 			])) {
-				throw new \OMV\Exception("A shared folder with the path '%s' ".
-				  "on the same device already exists.", $object->get("reldirpath"));
+				throw new \OMV\Exception("A shared folder with the ".
+				  "path '%s' on the same device already exists.",
+				  $object->get("reldirpath"));
 			}
 		} else {
 			// The mount directory must be unique on the same volume.
-			// We must use the exists() method because isUniqueByFilter() is depending
-			// on object->isNew() flag so it will not return true value in case of
-			// single copy of another shared folder exists.
+			// We must use the exists() method because isUniqueByFilter()
+			// is depending on object->isNew() flag so it will not return
+			// true value in case of single copy of another shared folder
+			// exists.
 			// Predicate: [uuid!='%s' and mntentref='%s' and reldirpath='%s']
 			if ($db->exists("conf.system.sharedfolder", [
 				"operator" => "and",
@@ -325,8 +324,9 @@ class OMVRpcServiceShareMgmt extends \OMV\Rpc\ServiceAbstract {
 					]
 				]
 			])) {
-				throw new \OMV\Exception("A shared folder with the path '%s' ".
-				  "on the same device already exists.", $object->get("reldirpath"));
+				throw new \OMV\Exception("A shared folder with the ".
+				  "path '%s' on the same device already exists.",
+				  $object->get("reldirpath"));
 			}
 			// Get the existing configuration object.
 			$oldObject = $db->get("conf.system.sharedfolder", $params['uuid']);
